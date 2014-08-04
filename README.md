@@ -4,12 +4,15 @@ approx-pf
 Approximate linear solution of power flow equations in power distribution networks
 
 This repository contains the GNU Octave and MatPower source code used in the paper
+
 S. Bolognani and S. Zampieri, "On the existence and linear approximation of the power flow solution in power distribution networks", submitted to IEEE Transactions on Power Systems, 2014.
 
 Simulations are based on a modified version of the IEEE 123 test feeder, which is available as a MatPower case file in the MatPower directory.
 
 The original IEEE 123 test feeder is available at http://ewh.ieee.org/soc/pes/dsacom/testfeeders/index.html
+
 MatPower is available at http://www.pserc.cornell.edu/matpower/
+
 GNU Octave is available at http://www.gnu.org/software/octave/
 
 - paper.m generates the data and the plots that have been used in the paper.
