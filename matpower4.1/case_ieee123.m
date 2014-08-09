@@ -1,10 +1,7 @@
 function mpc = case_ieee123
-%   Power flow data for IEEE 123 bus test case.
+%CASE300    Power flow data for IEEE 123 bus test case.
 %   Please see CASEFORMAT for details on the case file format.
 %
-%	S. Bolognani, S. Zampieri (2014)
-%	"On the existence and linear approximation of the power flow solution in power distribution networks"
-%	Preprint available at http://arxiv.org/abs/1403.5031
 
 %% MATPOWER Case Format : Version 2
 mpc.version = '2';
