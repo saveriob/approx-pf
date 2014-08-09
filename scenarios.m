@@ -1,11 +1,16 @@
-% S. Bolognani, S. Zampieri (2014)
-% "On the existence and linear approximation of the power flow solution in power distribution networks"
-% Preprint available at http://arxiv.org/abs/1403.5031
-
-% GNU Octave, version 3.8.1 available at http://www.gnu.org/software/octave/
-% MATPOWER 4.1 available at http://www.pserc.cornell.edu/matpower/
-
-% tab width 4
+%	This code generates a extra set of simulations of the model presented in
+%
+%	S. Bolognani, S. Zampieri (2014)
+%	"On the existence and linear approximation of the power flow solution in power distribution networks"
+%	Preprint available at http://arxiv.org/abs/1403.5031
+%
+%	This source code is distributed in the hope that it will be useful, but without any warranty.
+%	We do request that publications in which this testbed is adopted, explicitly acknowledge that fact by citing the above mentioned paper.
+%
+%	MatLab OR GNU Octave, version 3.8.1 available at http://www.gnu.org/software/octave/
+%	MATPOWER 4.1 available at http://www.pserc.cornell.edu/matpower/
+%
+%	tab width 4
 
 clear all
 close all
