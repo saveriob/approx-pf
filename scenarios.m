@@ -39,7 +39,8 @@ mpc = loadcase('case_ieee123');
 % 4) shunt capacitors
 % 5) voltage regulation
 % 6) tap changer
-% 7) PV bus
+% 7) PV buses
+% 8) high R/X ratio
 
 % For all these cases, voltage magnitude and voltage phases will be plotted.
 
@@ -81,9 +82,10 @@ disp('FIGURE 1: Nominal scenario');
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
 s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
-u_appr = 1 + X * conj(s);
+u_appr = UPCC + X * conj(s);
 
 u_true_nom = u_true;
 u_appr_nom = u_appr;
@@ -99,6 +101,7 @@ subplot(212)
 	xlim([1 n-1]);
 
 savedata;
+errorfigures;
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 2
@@ -119,23 +122,24 @@ mpc.bus(PQnodes,BS) = r * mpc.bus(PQnodes,BS);
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
 s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
-u_appr = 1 + X * conj(s);
+u_appr = UPCC + X * conj(s);
 
 plotdata;
 savedata;
-
+errorfigures;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 3
 
 figno = 3;
 
-disp('FIGURE 3: Lumped overload');
+disp('FIGURE 3: Lumped overload %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
 
 mpc = loadcase('case_ieee123');
 
-r = 30;
+r = 50;
 
 mpc.bus(32,PD) = r * mpc.bus(32,PD);
 mpc.bus(32,GS) = r * mpc.bus(32,GS);
@@ -145,19 +149,20 @@ mpc.bus(32,BS) = r * mpc.bus(32,BS);
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
 s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
-u_appr = 1 + X * conj(s);
+u_appr = UPCC + X * conj(s);
 
 plotdata;
 savedata;
-
+errorfigures;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 4
 
 figno = 4;
 
-disp('FIGURE 4: Shunt capacitor');
+disp('FIGURE 4: Shunt capacitor %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
 
 mpc = loadcase('case_ieee123');
 
@@ -169,6 +174,7 @@ mpc.bus(30,BS) = 0.050;
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
 s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
 
@@ -183,17 +189,17 @@ L4(30,30) = L4(30,30) - 1j * 0.050 / z0;
 X4 = inv(L4(PQnodes,PQnodes));
 w = -X4 * L4(PQnodes,PCCindex);
 
-u_appr = w + X4 * inv(diag(conj(w))) * conj(s);
+u_appr = UPCC*w + X4 * inv(diag(conj(w))) * conj(s);
 
 plotdata;
 savedata;
-
+errorfigures;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 5
 
 figno = 5;
 
-disp('FIGURE 5: Voltage regulation');
+disp('FIGURE 5: Voltage regulation %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
 
 mpc = loadcase('case_ieee123');
 
@@ -203,6 +209,7 @@ mpc.branch(17,TAP) = t;
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
 s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
 
@@ -241,17 +248,17 @@ X5 = inv(L5(PQnodes,PQnodes));
 d = ones(n-1,1);
 d(reg_buses) = 1/t;
 
-u_appr =  diag(d) * (1 + X5 * conj(s));
+u_appr =  diag(d) * (UPCC + X5 * conj(s));
 
 plotdata;
 savedata;
-
+errorfigures;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 6
 
 figno = 6;
 
-disp('FIGURE 6: Tap changer');
+disp('FIGURE 6: Tap changer %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
 
 mpc = loadcase('case_ieee123');
 
@@ -262,46 +269,87 @@ mpc.gen(1,VG) = tp;
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
 s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+UPCC = tp;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
-u_appr = tp + X/tp * conj(s);
+u_appr = UPCC + X/tp * conj(s);
 
 plotdata;
 savedata;
-
+errorfigures;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 7
 
 figno = 7;
 
-disp('FIGURE 7: PV bus');
+disp('FIGURE 7: PV buses %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
 
 mpc = loadcase('case_ieee123');
 
-PVbus = 15;
+PVbus = [15 51];
 
 mpc.bus(PVbus,BUS_TYPE) = 2;
-mpc.gen = [mpc.gen; ...
-			[	PVbus	0	0	200	-200	1	1	1	200	-200	0	0	0	0	0	0	0	0	0	0	0 ]];
-mpc.gencost = [mpc.gencost; ...
-				[ 2	0	0	3	0.01	40	0 ]];
+mpc.gen = 	[mpc.gen; ...
+			PVbus'	ones(size(PVbus'))*[0	0	200	-200	1	1	1	200	-200	0	0	0	0	0	0	0	0	0	0	0 ]];
+mpc.gencost = 	[mpc.gencost; ...
+				ones(size(PVbus'))*[ 2	0	0	3	0.01	40	0 ]];
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
 s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+UPCC = 1;
 
-xi = -1/imag(X(PVbus,PVbus));
-Q = 1/imag(X(PVbus,PVbus));
-R = -real(X(PVbus,PVbus))/imag(X(PVbus,PVbus));
-S = -real(X(PVbus,setdiff(PQnodes,PVbus)))./imag(X(PVbus,PVbus));
-T = -imag(X(PVbus,setdiff(PQnodes,PVbus)))./imag(X(PVbus,PVbus));
+Q = -inv(imag(X(PVbus,PVbus)));
+R = real(X(PVbus,PVbus)) * real(s(PVbus));
+S = real(X(PVbus,setdiff(PQnodes,PVbus))) * real(s(setdiff(PQnodes,PVbus)));
+T = imag(X(PVbus,setdiff(PQnodes,PVbus))) * imag(s(setdiff(PQnodes,PVbus)));
 
-qPVbus = xi + Q + R * real(s(PVbus)) + S * real(s(setdiff(PQnodes,PVbus))) + T * imag(s(setdiff(PQnodes,PVbus)));
+qPVbus = Q * (R + S + T);
 s(PVbus) = s(PVbus) + 1j * qPVbus;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
-u_appr = 1 + X * conj(s);
+u_appr = UPCC + X * conj(s);
 
 plotdata;
 savedata;
+errorfigures;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 8
+
+figno = 8;
+
+disp('FIGURE 8: High R/X ratio %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%');
+
+mpc = loadcase('case_ieee123_ug');
+
+L8 = zeros(nbu,nbu);
+
+for br = 1:nbr
+	br_F_BUS = mpc.branch(br,F_BUS);
+	br_T_BUS = mpc.branch(br,T_BUS);
+	br_BR_R = mpc.branch(br,BR_R);
+	br_BR_X = mpc.branch(br,BR_X);
+	br_Y = 1 / (br_BR_R + 1j * br_BR_X);
+
+	L8(br_F_BUS, br_T_BUS) = br_Y;
+	L8(br_T_BUS, br_F_BUS) = br_Y;
+	L8(br_F_BUS, br_F_BUS) = L8(br_F_BUS, br_F_BUS) - br_Y;
+	L8(br_T_BUS, br_T_BUS) = L8(br_T_BUS, br_T_BUS) - br_Y;
+end
+
+% Build matrix X
+
+X8 = inv(L8(PQnodes,PQnodes));
+
+results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
+
+s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+UPCC = 1;
+
+u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
+u_appr = UPCC + X8 * conj(s);
+
+plotdata;
+savedata;
+errorfigures;
 

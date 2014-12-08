@@ -123,7 +123,7 @@ for p = 1:nps
 
 end
 
-ylim([0.8 1.1])
+ylim([0.5 1.1])
 
 
 % Save voltage magnitude data
@@ -144,6 +144,7 @@ data_voltagem = [(1:n-1)'					...
 
 save('-append', '-ascii', fname, 'data_voltagem');
 
+errorfigures;
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -185,4 +186,243 @@ data_voltagem = [(1:n-1)'					...
 
 save('-append', '-ascii', fname, 'data_voltagem');
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figno = 3;
+
+disp('FIGURE 3: Voltage magnitude (uniform overload)');
+
+mpc = loadcase('case_ieee123');
+
+r = 2;
+
+mpc.bus(PQnodes,PD) = r * mpc.bus(PQnodes,PD);
+mpc.bus(PQnodes,GS) = r * mpc.bus(PQnodes,GS);
+mpc.bus(PQnodes,QD) = r * mpc.bus(PQnodes,QD);
+mpc.bus(PQnodes,BS) = r * mpc.bus(PQnodes,BS);
+
+results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
+
+s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+
+u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
+u_appr = 1 + X * conj(s);
+
+figure(figno)
+plot(1:(n-1), abs(u_true), 'ko ', 1:(n-1), abs(u_appr), 'k. ');
+title('Voltage magnitude')
+xlim([1 n-1]);
+
+
+% check conditions of Theorem 1 for the existence of a practical solution
+
+rho_2_star = max(norm(X,2,'cols'));
+fprintf(1,'X 2-star: %f\n', rho_2_star);
+fprintf(1,'s 2-norm: %f\n', norm(s,2));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2_star * norm(s,2));
+
+
+% check if condition is verified with induced 2-norm
+
+rho_2 = norm(X,2);
+fprintf(1,'X 2-norm: %f\n', rho_2);
+fprintf(1,'s 2-norm: %f\n', norm(s,2));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2 * norm(s,2));
+
+
+% check if condition is verified with p=1, q=Inf norms
+
+rho_Inf_star = max(max(abs(X)));
+fprintf(1,'X Inf-star: %f\n', rho_Inf_star);
+fprintf(1,'s 1-norm: %f\n', norm(s,1));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_Inf_star * norm(s,1));
+
+
+% plot error bands for different p-norms
+
+ps = [1 2];
+nps = length(ps);
+
+margins = zeros(n-1,nps);
+
+hold on
+
+for p = 1:nps
+
+	normq = norm(X,holder(ps(p)),'rows');
+	margins(:,p) = 4 * normq * max(normq) * norm(s,ps(p))^2;
+
+	plot(1:(n-1), abs(u_appr)-margins(:,p), num2str(p), 1:(n-1), abs(u_appr)+margins(:,p), num2str(p));
+	text(n, abs(u_appr(end))-margins(end,p), num2str(ps(p)));
+
+end
+
+% Save voltage magnitude data
+
+fname = 'data_paper_voltagem_overload.data';
+
+myfile=fopen(fname,"w");
+fdisp(myfile,'bus appr real min1 max1 min2 max2');
+fclose(myfile);
+
+data_voltagem = [(1:n-1)'					...
+		 abs(u_appr)						...
+		 results.bus(PQnodes,VM)			...
+		 abs(u_appr)-margins(:,1)			...
+		 abs(u_appr)+margins(:,1)			...
+		 abs(u_appr)-margins(:,2)			...
+		 abs(u_appr)+margins(:,2)];
+
+save('-append', '-ascii', fname, 'data_voltagem');
+
+errorfigures;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figno = 4;
+
+disp('FIGURE 4: Voltage magnitude (spot overload)');
+
+mpc = loadcase('case_ieee123');
+
+r = 50;
+
+mpc.bus(32,PD) = r * mpc.bus(32,PD);
+mpc.bus(32,GS) = r * mpc.bus(32,GS);
+mpc.bus(32,QD) = r * mpc.bus(32,QD);
+mpc.bus(32,BS) = r * mpc.bus(32,BS);
+
+results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
+
+s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+
+u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
+u_appr = 1 + X * conj(s);
+
+figure(figno)
+plot(1:(n-1), abs(u_true), 'ko ', 1:(n-1), abs(u_appr), 'k. ');
+title('Voltage magnitude')
+xlim([1 n-1]);
+
+
+% check conditions of Theorem 1 for the existence of a practical solution
+
+rho_2_star = max(norm(X,2,'cols'));
+fprintf(1,'X 2-star: %f\n', rho_2_star);
+fprintf(1,'s 2-norm: %f\n', norm(s,2));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2_star * norm(s,2));
+
+
+% check if condition is verified with induced 2-norm
+
+rho_2 = norm(X,2);
+fprintf(1,'X 2-norm: %f\n', rho_2);
+fprintf(1,'s 2-norm: %f\n', norm(s,2));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2 * norm(s,2));
+
+
+% check if condition is verified with p=1, q=Inf norms
+
+rho_Inf_star = max(max(abs(X)));
+fprintf(1,'X Inf-star: %f\n', rho_Inf_star);
+fprintf(1,'s 1-norm: %f\n', norm(s,1));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_Inf_star * norm(s,1));
+
+
+% plot error bands for different p-norms
+
+ps = [1 2];
+nps = length(ps);
+
+margins = zeros(n-1,nps);
+
+hold on
+
+for p = 1:nps
+
+	normq = norm(X,holder(ps(p)),'rows');
+	margins(:,p) = 4 * normq * max(normq) * norm(s,ps(p))^2;
+
+	plot(1:(n-1), abs(u_appr)-margins(:,p), num2str(p), 1:(n-1), abs(u_appr)+margins(:,p), num2str(p));
+	text(n, abs(u_appr(end))-margins(end,p), num2str(ps(p)));
+
+end
+
+ylim([0.8 1.1])
+
+
+% Save voltage magnitude data
+
+fname = 'data_paper_voltagem_spotoverload.data';
+
+myfile=fopen(fname,"w");
+fdisp(myfile,'bus appr real min1 max1 min2 max2');
+fclose(myfile);
+
+data_voltagem = [(1:n-1)'					...
+		 abs(u_appr)						...
+		 results.bus(PQnodes,VM)			...
+		 abs(u_appr)-margins(:,1)			...
+		 abs(u_appr)+margins(:,1)			...
+		 abs(u_appr)-margins(:,2)			...
+		 abs(u_appr)+margins(:,2)];
+
+save('-append', '-ascii', fname, 'data_voltagem');
+
+errorfigures;
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+figno = 5;
+
+disp('FIGURE 5: Voltage magnitude (PV bus)');
+
+mpc = loadcase('case_ieee123');
+
+PVbus = [15 51];
+
+mpc.bus(PVbus,BUS_TYPE) = 2;
+mpc.gen = 	[mpc.gen; ...
+			[	PVbus(1)	0	0	200	-200	1	1	1	200	-200	0	0	0	0	0	0	0	0	0	0	0 ] ; ...
+			[	PVbus(2)	0	0	200	-200	1	1	1	200	-200	0	0	0	0	0	0	0	0	0	0	0 ]];
+mpc.gencost = [mpc.gencost; ...
+				[ 2	0	0	3	0.01	40	0 ]; ...
+				[ 2	0	0	3	0.01	40	0 ]];
+
+results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
+
+s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+
+Q = -inv(imag(X(PVbus,PVbus)));
+R = real(X(PVbus,PVbus)) * real(s(PVbus));
+S = real(X(PVbus,setdiff(PQnodes,PVbus))) * real(s(setdiff(PQnodes,PVbus)));
+T = imag(X(PVbus,setdiff(PQnodes,PVbus))) * imag(s(setdiff(PQnodes,PVbus)));
+
+qPVbus = Q * (R + S + T);
+s(PVbus) = s(PVbus) + 1j * qPVbus;
+
+u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
+u_appr = 1 + X * conj(s);
+
+figure(figno)
+plot(1:(n-1), abs(u_true), 'ko ', 1:(n-1), abs(u_appr), 'k. ');
+title('Voltage magnitude')
+xlim([1 n-1]);
+
+% Save voltage magnitude data
+
+fname = 'data_paper_voltagem_pvbus.data';
+
+myfile=fopen(fname,"w");
+fdisp(myfile,'bus appr real');
+fclose(myfile);
+
+data_voltagem = [(1:n-1)'					...
+		 abs(u_appr)						...
+		 results.bus(PQnodes,VM)];
+
+save('-append', '-ascii', fname, 'data_voltagem');
+
+errorfigures;
 
