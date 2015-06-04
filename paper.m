@@ -18,7 +18,7 @@ clc
 
 more off
 
-addpath('matpower5.1');
+addpath('matpower4.1');
 define_constants;
 
 % Load case_ieee123, inspired by the IEEE 123 test feeder, with 
@@ -28,8 +28,7 @@ define_constants;
 % - switched in their normal position
 % - ideal voltage regulators
 
-% The modified testbed is distributed as case_ieee123 in the casefiles
-% directory, and needs to be copied in the matpower directory.
+% The modified testbed is distributed as case_ieee123.
 
 mpc = loadcase('case_ieee123');
 
@@ -46,11 +45,11 @@ nbu = size(mpc.bus,1);
 L = zeros(nbu,nbu);
 
 for br = 1:nbr
-	br_F_BUS = mpc.branch(br,F_BUS); % FROM bus
-	br_T_BUS = mpc.branch(br,T_BUS); % TO bus
-	br_BR_R = mpc.branch(br,BR_R); % RESISTANCE
-	br_BR_X = mpc.branch(br,BR_X); % INDUCTANCE
-	br_Y = 1 / (br_BR_R + 1j * br_BR_X); % ADMITTANCE
+	br_F_BUS = mpc.branch(br,F_BUS);
+	br_T_BUS = mpc.branch(br,T_BUS);
+	br_BR_R = mpc.branch(br,BR_R);
+	br_BR_X = mpc.branch(br,BR_X);
+	br_Y = 1 / (br_BR_R + 1j * br_BR_X);
 
 	L(br_F_BUS, br_T_BUS) = br_Y;
 	L(br_T_BUS, br_F_BUS) = br_Y;
@@ -59,9 +58,9 @@ for br = 1:nbr
 end
 
 % Build matrix X
+
 X = inv(L(PQnodes,PQnodes));
 
-%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figno = 1;
@@ -83,7 +82,7 @@ xlim([1 n-1]);
 
 % check conditions of Theorem 1 for the existence of a practical solution
 
-rho_2_star = max(arrayfun(@(idx) norm(X(idx,:),2), 1:size(X,1)));
+rho_2_star = max(norm(X,2,'cols'));
 fprintf(1,'X 2-star: %f\n', rho_2_star);
 fprintf(1,'s 2-norm: %f\n', norm(s,2));
 fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2_star * norm(s,2));
@@ -116,22 +115,23 @@ hold on
 
 for p = 1:nps
 
-	normq = arrayfun(@(idx) norm(X(idx,:),holder(ps(p))), 1:size(X,1));
+	normq = norm(X,holder(ps(p)),'rows');
 	margins(:,p) = 4 * normq * max(normq) * norm(s,ps(p))^2;
 
-	plot(1:(n-1), abs(u_appr)-margins(:,p), p, 1:(n-1), abs(u_appr)+margins(:,p), p);
+	plot(1:(n-1), abs(u_appr)-margins(:,p), num2str(p), 1:(n-1), abs(u_appr)+margins(:,p), num2str(p));
 	text(n, abs(u_appr(end))-margins(end,p), num2str(ps(p)));
 
 end
 
 ylim([0.5 1.1])
 
+
 % Save voltage magnitude data
 
 fname = 'data_paper_voltagem.data';
 
-myfile=fopen(fname,'w');
-fprintf(myfile,'bus appr real min1 max1 min2 max2');
+myfile=fopen(fname,"w");
+fdisp(myfile,'bus appr real min1 max1 min2 max2');
 fclose(myfile);
 
 data_voltagem = [(1:n-1)'					...
@@ -146,7 +146,6 @@ save('-append', '-ascii', fname, 'data_voltagem');
 
 errorfigures;
 
-%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % DC power flow comparison
@@ -175,8 +174,8 @@ xlim([1 n-1]);
 
 fname = 'data_paper_voltagea.data';
 
-myfile=fopen(fname,'w');
-fprintf(myfile,'bus appr real linear dc');
+myfile=fopen(fname,"w");
+fdisp(myfile,'bus appr real linear dc');
 fclose(myfile);
 
 data_voltagem = [(1:n-1)'					...
@@ -187,7 +186,7 @@ data_voltagem = [(1:n-1)'					...
 
 save('-append', '-ascii', fname, 'data_voltagem');
 
-%%
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figno = 3;
@@ -218,8 +217,7 @@ xlim([1 n-1]);
 
 % check conditions of Theorem 1 for the existence of a practical solution
 
-rho_2_star = max(arrayfun(@(idx) norm(X(idx,:),2), 1:size(X,1)));
-
+rho_2_star = max(norm(X,2,'cols'));
 fprintf(1,'X 2-star: %f\n', rho_2_star);
 fprintf(1,'s 2-norm: %f\n', norm(s,2));
 fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2_star * norm(s,2));
@@ -252,22 +250,20 @@ hold on
 
 for p = 1:nps
 
-    normq = arrayfun(@(idx) norm(X(idx,:),holder(ps(p))), 1:size(X,1));
+	normq = norm(X,holder(ps(p)),'rows');
 	margins(:,p) = 4 * normq * max(normq) * norm(s,ps(p))^2;
 
-	plot(1:(n-1), abs(u_appr)-margins(:,p), p, 1:(n-1), abs(u_appr)+margins(:,p), p);
+	plot(1:(n-1), abs(u_appr)-margins(:,p), num2str(p), 1:(n-1), abs(u_appr)+margins(:,p), num2str(p));
 	text(n, abs(u_appr(end))-margins(end,p), num2str(ps(p)));
 
 end
-
-ylim([0.5 1.1])
 
 % Save voltage magnitude data
 
 fname = 'data_paper_voltagem_overload.data';
 
-myfile=fopen(fname,'w');
-fprintf(myfile,'bus appr real min1 max1 min2 max2');
+myfile=fopen(fname,"w");
+fdisp(myfile,'bus appr real min1 max1 min2 max2');
 fclose(myfile);
 
 data_voltagem = [(1:n-1)'					...
@@ -282,7 +278,6 @@ save('-append', '-ascii', fname, 'data_voltagem');
 
 errorfigures;
 
-%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figno = 4;
@@ -313,7 +308,7 @@ xlim([1 n-1]);
 
 % check conditions of Theorem 1 for the existence of a practical solution
 
-rho_2_star = max(arrayfun(@(idx) norm(X(idx,:),2), 1:size(X,1)));
+rho_2_star = max(norm(X,2,'cols'));
 fprintf(1,'X 2-star: %f\n', rho_2_star);
 fprintf(1,'s 2-norm: %f\n', norm(s,2));
 fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2_star * norm(s,2));
@@ -346,23 +341,23 @@ hold on
 
 for p = 1:nps
 
-    normq = arrayfun(@(idx) norm(X(idx,:),holder(ps(p))), 1:size(X,1));
+	normq = norm(X,holder(ps(p)),'rows');
 	margins(:,p) = 4 * normq * max(normq) * norm(s,ps(p))^2;
 
-	plot(1:(n-1), abs(u_appr)-margins(:,p), p, 1:(n-1), abs(u_appr)+margins(:,p), p);
+	plot(1:(n-1), abs(u_appr)-margins(:,p), num2str(p), 1:(n-1), abs(u_appr)+margins(:,p), num2str(p));
 	text(n, abs(u_appr(end))-margins(end,p), num2str(ps(p)));
 
 end
 
-ylim([0.5 1.1])
+ylim([0.8 1.1])
 
 
 % Save voltage magnitude data
 
 fname = 'data_paper_voltagem_spotoverload.data';
 
-myfile=fopen(fname,'w');
-fprintf(myfile,'bus appr real min1 max1 min2 max2');
+myfile=fopen(fname,"w");
+fdisp(myfile,'bus appr real min1 max1 min2 max2');
 fclose(myfile);
 
 data_voltagem = [(1:n-1)'					...
@@ -377,7 +372,6 @@ save('-append', '-ascii', fname, 'data_voltagem');
 
 errorfigures;
 
-%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 figno = 5;
@@ -416,14 +410,12 @@ plot(1:(n-1), abs(u_true), 'ko ', 1:(n-1), abs(u_appr), 'k. ');
 title('Voltage magnitude')
 xlim([1 n-1]);
 
-ylim([0.9 1.05])
-
 % Save voltage magnitude data
 
 fname = 'data_paper_voltagem_pvbus.data';
 
-myfile=fopen(fname,'w');
-fprintf(myfile,'bus appr real');
+myfile=fopen(fname,"w");
+fdisp(myfile,'bus appr real');
 fclose(myfile);
 
 data_voltagem = [(1:n-1)'					...
