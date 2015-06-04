@@ -6,7 +6,7 @@ ave_angle_relerror = mean(angle_relerror)*100;
 max_angle_relerror = max(angle_relerror)*100;
 
 voltage_error = abs(abs(u_true) - abs(u_appr));
-voltage_relerror = voltage_error ./ (UPCC-abs(u_true));
+voltage_relerror = voltage_error ./ (1-abs(u_true));
 ave_voltage_error = mean(voltage_error);
 max_voltage_error = max(voltage_error);
 ave_voltage_relerror = mean(voltage_relerror)*100;

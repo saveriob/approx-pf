@@ -18,7 +18,7 @@ clc
 
 more off
 
-addpath('matpower4.1');
+addpath('matpower5.1');
 define_constants;
 
 % Load case_ieee123, inspired by the IEEE 123 test feeder, with 
@@ -28,7 +28,8 @@ define_constants;
 % - switched in their normal position
 % - ideal voltage regulators
 
-% The modified testbed is distributed as case_ieee123.
+% The modified testbed is distributed as case_ieee123 in the casefiles
+% directory, and needs to be copied in the matpower directory.
 
 mpc = loadcase('case_ieee123');
 
