@@ -2,8 +2,8 @@
 
 fname = sprintf('data_%i_voltagem.data', figno);
 
-myfile=fopen(fname,"w");
-fdisp(myfile,'bus real appr');
+myfile=fopen(fname,'w');
+fprintf(myfile,'bus real appr');
 fclose(myfile);
 
 data_voltagem = [ ...
@@ -18,8 +18,8 @@ save('-append', '-ascii', fname, 'data_voltagem');
 
 fname = sprintf('data_%i_voltagea.data', figno);
 
-myfile=fopen(fname,"w");
-fdisp(myfile,'bus real appr');
+myfile=fopen(fname,'w');
+fprintf(myfile,'bus real appr');
 fclose(myfile);
 
 data_voltagea = [ ...

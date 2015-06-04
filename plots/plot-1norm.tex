@@ -1,0 +1,144 @@
+\documentclass{standalone}
+
+%\usepackage[cmex10]{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{amsthm}
+%\usepackage[T1]{fontenc}
+
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.8}
+\input{errorband}
+
+\def\octavedata{data_voltagem-1norm.data}
+
+\begin{document}
+
+
+\begin{tikzpicture}
+[
+	xscale	= 1,	% to scale horizontally everything but the text
+	yscale	= 1,	% to scale vertically everything but the text
+]
+	%
+	\begin{axis}
+	[
+	footnotesize,
+		xmode					= linear, 
+		ymode					= linear,
+%		enlarge x limits		= 0.5,
+		width					= 170mm,
+		height					= 50mm,
+		%
+		xmin					= 0,
+		xmax					= 115,
+%		ymin					= 0,
+		ymax					= 1,
+		%
+		xlabel					= {bus},
+		xlabel near ticks,
+		%
+		xtick					= {1, 114},
+		xticklabels				= {1, 114},
+%		xmajorgrids,
+		%
+		ylabel					= {\footnotesize voltage magnitude $|v_h|$ {\tiny[p.u.]}},
+		ylabel near ticks,
+		%
+%		ytick					= {0, 0.2, ..., 1},
+%		yticklabels				= {0, 0.2, ..., 1},
+%		ymajorgrids,
+		%
+		legend pos				= south west,
+		legend columns			= 1,
+		legend entries			= {exact solution, approximate model (Corollary 2), error bound (21)},
+		legend cell align		= left,
+		legend style			= {draw = none},
+		%
+		title style				= { align = center },
+%		title					= {Voltage magnitude},
+		%
+%		axis background/.style	= {fill = black!05!white},
+	]
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+%			dashed,
+			draw			= none,
+			only marks,
+%			line width		= 1,
+%			opacity			= 1,
+			mark			= o,
+			mark size		= 2pt,
+		]
+		table
+		[
+			x=bus,
+			y=real,
+		]
+		{\octavedata};
+%		\errorband[red, opacity=0.3]{data_voltagem.data}{0}{3}{4};
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+%			solid,
+			draw			= none,
+			only marks,
+%			line width		= 1,
+%			opacity			= 0.8,
+			mark			= *,
+			mark size		= 1pt,
+		]
+		table
+		[
+			x=bus,
+			y=appr,
+		]
+		{\octavedata};
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			%jump mark mid,
+			%const plot,
+			solid,
+			draw			= black,
+%			line width		= 1,
+			opacity			= 0.8,
+			mark			= none,
+		]
+		table
+		[
+			x=bus,
+			y=min,
+		]
+		{\octavedata};
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			%jump mark mid,
+			solid,
+			draw			= black,
+%			line width		= 1,
+			opacity			= 0.8,
+			mark			= none,
+		]
+		table
+		[
+			x=bus,
+			y=max,
+		]
+		{\octavedata};
+		%
+	\end{axis}
+	%
+\end{tikzpicture}
+
+
+
+\end{document}

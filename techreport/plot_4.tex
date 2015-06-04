@@ -1,0 +1,247 @@
+\begin{flushright}
+
+\begin{tikzpicture}
+[
+	xscale	= 1,	% to scale horizontally everything but the text
+	yscale	= 1,	% to scale vertically everything but the text
+]
+	%
+	%
+	%
+	%
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+	%
+	%
+	\begin{axis}
+	[
+	footnotesize,
+		xmode					= linear, 
+		ymode					= linear,
+%		enlarge x limits		= 0.5,
+		width					= 170mm,
+		height					= 50mm,
+		%
+		xmin					= 0,
+		xmax					= 56,
+%		ymin					= 0,
+		ymax					= 1.02,
+		%
+%		xlabel					= {bus},
+%		xlabel near ticks,
+		%
+		xtick					= {1, 55, 26, 28, 29, 30},
+		xticklabels				= {bus 1, 55, \scriptsize 26, \scriptsize 28, \scriptsize 29, \scriptsize 30},
+%		xmajorgrids,
+		%
+		ylabel					= {\footnotesize voltage magnitude [p.u.]},
+		ylabel near ticks,
+		%
+%		ytick					= {0, 0.2, ..., 1},
+%		yticklabels				= {0, 0.2, ..., 1},
+%		ymajorgrids,
+		%
+		legend pos				= north east,
+		legend columns			= 2,
+		legend entries			= {exact solution $\ \ $, approximate model},
+		legend cell align		= left,
+		legend style			= {draw = none},
+		%
+		title style				= { align = center },
+%		title					= {Voltage magnitude},
+		%
+%		axis background/.style	= {fill = black!05!white},
+	]
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+			draw			= none,
+			only marks,
+			mark			= o,
+			mark size		= 2pt,
+		]
+		table
+		[
+			x=bus,
+			y=real,
+		]
+		{\octavenominaldatam};
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+			draw			= none,
+			only marks,
+			mark			= *,
+			mark size		= 1pt,
+		]
+		table
+		[
+			x=bus,
+			y=appr,
+		]
+		{\octavenominaldatam};
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+			draw			= none,
+			only marks,
+			mark			= o,
+			mark size		= 2pt,
+			color			= red,
+		]
+		table
+		[
+			x=bus,
+			y=real,
+		]
+		{\octavedatam};
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+			draw			= none,
+			only marks,
+			mark			= *,
+			mark size		= 1pt,
+			color			= red,
+		]
+		table
+		[
+			x=bus,
+			y=appr,
+		]
+		{\octavedatam};
+		%
+		% --------------------------------------------------------------		
+		%
+	\end{axis}
+	%
+\end{tikzpicture}
+
+
+\begin{tikzpicture}
+[
+	xscale	= 1,	% to scale horizontally everything but the text
+	yscale	= 1,	% to scale vertically everything but the text
+]	
+	%
+	\begin{axis}
+	[
+	footnotesize,
+		xmode					= linear, 
+		ymode					= linear,
+%		enlarge x limits		= 0.5,
+		width					= 170mm,
+		height					= 50mm,
+		%
+		xmin					= 0,
+		xmax					= 56,
+%		ymin					= 0,
+		ymax					= 1,
+		%
+%		xlabel					= {bus},
+%		xlabel near ticks,
+		%
+		xtick					= {1, 55, 26, 28, 29, 30},
+		xticklabels				= {bus 1, 55, \scriptsize 26, \scriptsize 28, \scriptsize 29, \scriptsize 30},
+%		xmajorgrids,
+		%
+		ylabel					= {\footnotesize voltage angle [deg]},
+		ylabel near ticks,
+		%
+%		ytick					= {0, 0.2, ..., 1},
+%		yticklabels				= {0, 0.2, ..., 1},
+%		ymajorgrids,
+		%
+		legend pos				= north east,
+		legend columns			= 2,
+		legend entries			= {exact solution $\ \ $, approximate model},
+		legend cell align		= left,
+		legend style			= {draw = none},
+		%
+		title style				= { align = center },
+%		title					= {Voltage magnitude},
+		%
+%		axis background/.style	= {fill = black!05!white},
+	]
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+			draw			= none,
+			only marks,
+			mark			= o,
+			mark size		= 2pt,
+		]
+		table
+		[
+			x=bus,
+			y=real,
+		]
+		{\octavenominaldataa};
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+			draw			= none,
+			only marks,
+			mark			= *,
+			mark size		= 1pt,
+		]
+		table
+		[
+			x=bus,
+			y=appr,
+		]
+		{\octavenominaldataa};
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+			draw			= none,
+			only marks,
+			mark			= o,
+			mark size		= 2pt,
+			color			= red,
+		]
+		table
+		[
+			x=bus,
+			y=real,
+		]
+		{\octavedataa};
+		%
+		% --------------------------------------------------------------
+		\addplot
+		[
+			const plot,
+			draw			= none,
+			only marks,
+			mark			= *,
+			mark size		= 1pt,
+			color			= red,
+		]
+		table
+		[
+			x=bus,
+			y=appr,
+		]
+		{\octavedataa};
+		%
+		% --------------------------------------------------------------		
+		%
+	\end{axis}
+\end{tikzpicture}
+
+
+
+\end{flushright}
