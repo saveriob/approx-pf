@@ -5,7 +5,7 @@ Approximate linear solution of power flow equations in power distribution networ
 
 This repository contains the GNU Octave and MatPower source code used in the paper
 
-S. Bolognani and S. Zampieri, "On the existence and linear approximation of the power flow solution in power distribution networks", submitted to IEEE Transactions on Power Systems, 2014.
+S. Bolognani and S. Zampieri, "On the existence and linear approximation of the power flow solution in power distribution networks", to appear on IEEE Transactions on Power Systems, 2015. doi: 10.1109/TPWRS.2015.2395452
 
 - paper.m generates the data and the plots that have been used in the paper.
 - scenarios.m generates extra data and extra plots for a number of practical scenarios.
