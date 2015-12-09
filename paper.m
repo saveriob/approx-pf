@@ -1,14 +1,16 @@
 %	This code generates the simulations included in
 %
-%	S. Bolognani, S. Zampieri (2014)
+%	S. Bolognani, S. Zampieri
 %	"On the existence and linear approximation of the power flow solution in power distribution networks"
+%	to appear on IEEE Transactions on Power Systems.
+%	doi: 10.1109/TPWRS.2015.2395452
 %	Preprint available at http://arxiv.org/abs/1403.5031
 %
 %	This source code is distributed in the hope that it will be useful, but without any warranty.
 %	We do request that publications in which this testbed is adopted, explicitly acknowledge that fact by citing the above mentioned paper.
 %
 %	MatLab OR GNU Octave, version 3.8.1 available at http://www.gnu.org/software/octave/
-%	MATPOWER 4.1 available at http://www.pserc.cornell.edu/matpower/
+%	MATPOWER 5.1 available at http://www.pserc.cornell.edu/matpower/
 %
 %	tab width 4
 
@@ -52,10 +54,10 @@ for br = 1:nbr
 	br_BR_X = mpc.branch(br,BR_X); % INDUCTANCE
 	br_Y = 1 / (br_BR_R + 1j * br_BR_X); % ADMITTANCE
 
-	L(br_F_BUS, br_T_BUS) = br_Y;
-	L(br_T_BUS, br_F_BUS) = br_Y;
-	L(br_F_BUS, br_F_BUS) = L(br_F_BUS, br_F_BUS) - br_Y;
-	L(br_T_BUS, br_T_BUS) = L(br_T_BUS, br_T_BUS) - br_Y;
+	L(br_F_BUS, br_T_BUS) = -br_Y;
+	L(br_T_BUS, br_F_BUS) = -br_Y;
+	L(br_F_BUS, br_F_BUS) = L(br_F_BUS, br_F_BUS) + br_Y;
+	L(br_T_BUS, br_T_BUS) = L(br_T_BUS, br_T_BUS) + br_Y;
 end
 
 % Build matrix X
@@ -70,7 +72,8 @@ disp('FIGURE 1: Voltage magnitude');
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
 u_appr = 1 + X * conj(s);
@@ -86,15 +89,16 @@ xlim([1 n-1]);
 rho_2_star = max(arrayfun(@(idx) norm(X(idx,:),2), 1:size(X,1)));
 fprintf(1,'X 2-star: %f\n', rho_2_star);
 fprintf(1,'s 2-norm: %f\n', norm(s,2));
-fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2_star * norm(s,2));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', 4 * rho_2_star * norm(s,2));
 
 
-% check if condition is verified with induced 2-norm
+% check if condition is verified with algebraic connectivity of L
 
-rho_2 = norm(X,2);
-fprintf(1,'X 2-norm: %f\n', rho_2);
+eigL = sort(abs(eig(L)));
+sigma2 = eigL(2);
+fprintf(1,'sigma_2:  %f\n', sigma2);
 fprintf(1,'s 2-norm: %f\n', norm(s,2));
-fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2 * norm(s,2));
+fprintf(1,'4 * ||s|| / sigma_2 = %f <? 1\n\n', 4 * norm(s,2) / sigma2);
 
 
 % check if condition is verified with p=1, q=Inf norms
@@ -102,7 +106,7 @@ fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2 * norm(s,2));
 rho_Inf_star = max(max(abs(X)));
 fprintf(1,'X Inf-star: %f\n', rho_Inf_star);
 fprintf(1,'s 1-norm: %f\n', norm(s,1));
-fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_Inf_star * norm(s,1));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', 4 * rho_Inf_star * norm(s,1));
 
 
 % plot error bands for different p-norms
@@ -205,7 +209,8 @@ mpc.bus(PQnodes,BS) = r * mpc.bus(PQnodes,BS);
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
 u_appr = 1 + X * conj(s);
@@ -222,15 +227,16 @@ rho_2_star = max(arrayfun(@(idx) norm(X(idx,:),2), 1:size(X,1)));
 
 fprintf(1,'X 2-star: %f\n', rho_2_star);
 fprintf(1,'s 2-norm: %f\n', norm(s,2));
-fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2_star * norm(s,2));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', 4 * rho_2_star * norm(s,2));
 
 
-% check if condition is verified with induced 2-norm
+% check if condition is verified with algebraic connectivity of L
 
-rho_2 = norm(X,2);
-fprintf(1,'X 2-norm: %f\n', rho_2);
+eigL = sort(abs(eig(L)));
+sigma2 = eigL(2);
+fprintf(1,'sigma_2:  %f\n', sigma2);
 fprintf(1,'s 2-norm: %f\n', norm(s,2));
-fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2 * norm(s,2));
+fprintf(1,'4 * ||s|| / sigma_2 = %f <? 1\n\n', 4 * norm(s,2) / sigma2);
 
 
 % check if condition is verified with p=1, q=Inf norms
@@ -238,7 +244,7 @@ fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2 * norm(s,2));
 rho_Inf_star = max(max(abs(X)));
 fprintf(1,'X Inf-star: %f\n', rho_Inf_star);
 fprintf(1,'s 1-norm: %f\n', norm(s,1));
-fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_Inf_star * norm(s,1));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', 4 * rho_Inf_star * norm(s,1));
 
 
 % plot error bands for different p-norms
@@ -300,7 +306,8 @@ mpc.bus(32,BS) = r * mpc.bus(32,BS);
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
 u_appr = 1 + X * conj(s);
@@ -316,15 +323,16 @@ xlim([1 n-1]);
 rho_2_star = max(arrayfun(@(idx) norm(X(idx,:),2), 1:size(X,1)));
 fprintf(1,'X 2-star: %f\n', rho_2_star);
 fprintf(1,'s 2-norm: %f\n', norm(s,2));
-fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2_star * norm(s,2));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', 4 * rho_2_star * norm(s,2));
 
 
-% check if condition is verified with induced 2-norm
+% check if condition is verified with algebraic connectivity of L
 
-rho_2 = norm(X,2);
-fprintf(1,'X 2-norm: %f\n', rho_2);
+eigL = sort(abs(eig(L)));
+sigma2 = eigL(2);
+fprintf(1,'sigma_2:  %f\n', sigma2);
 fprintf(1,'s 2-norm: %f\n', norm(s,2));
-fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2 * norm(s,2));
+fprintf(1,'4 * ||s|| / sigma_2 = %f <? 1\n\n', 4 * norm(s,2) / sigma2);
 
 
 % check if condition is verified with p=1, q=Inf norms
@@ -332,7 +340,7 @@ fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_2 * norm(s,2));
 rho_Inf_star = max(max(abs(X)));
 fprintf(1,'X Inf-star: %f\n', rho_Inf_star);
 fprintf(1,'s 1-norm: %f\n', norm(s,1));
-fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', rho_Inf_star * norm(s,1));
+fprintf(1,'4 * ||X|| * ||s|| = %f <? 1\n\n', 4 * rho_Inf_star * norm(s,1));
 
 
 % plot error bands for different p-norms
@@ -398,7 +406,8 @@ mpc.gencost = [mpc.gencost; ...
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 
 Q = -inv(imag(X(PVbus,PVbus)));
 R = real(X(PVbus,PVbus)) * real(s(PVbus));

@@ -1,14 +1,16 @@
 %	This code generates a extra set of simulations of the model presented in
 %
-%	S. Bolognani, S. Zampieri (2014)
+%	S. Bolognani, S. Zampieri
 %	"On the existence and linear approximation of the power flow solution in power distribution networks"
+%	to appear on IEEE Transactions on Power Systems.
+%	doi: 10.1109/TPWRS.2015.2395452
 %	Preprint available at http://arxiv.org/abs/1403.5031
 %
 %	This source code is distributed in the hope that it will be useful, but without any warranty.
 %	We do request that publications in which this testbed is adopted, explicitly acknowledge that fact by citing the above mentioned paper.
 %
 %	MatLab OR GNU Octave, version 3.8.1 available at http://www.gnu.org/software/octave/
-%	MATPOWER 4.1 available at http://www.pserc.cornell.edu/matpower/
+%	MATPOWER 5.1 available at http://www.pserc.cornell.edu/matpower/
 %
 %	tab width 4
 
@@ -64,16 +66,17 @@ for br = 1:nbr
 	br_BR_X = mpc.branch(br,BR_X);
 	br_Y = 1 / (br_BR_R + 1j * br_BR_X);
 
-	L(br_F_BUS, br_T_BUS) = br_Y;
-	L(br_T_BUS, br_F_BUS) = br_Y;
-	L(br_F_BUS, br_F_BUS) = L(br_F_BUS, br_F_BUS) - br_Y;
-	L(br_T_BUS, br_T_BUS) = L(br_T_BUS, br_T_BUS) - br_Y;
+	L(br_F_BUS, br_T_BUS) = -br_Y;
+	L(br_T_BUS, br_F_BUS) = -br_Y;
+	L(br_F_BUS, br_F_BUS) = L(br_F_BUS, br_F_BUS) + br_Y;
+	L(br_T_BUS, br_T_BUS) = L(br_T_BUS, br_T_BUS) + br_Y;
 end
 
 % Build matrix X
 
 X = inv(L(PQnodes,PQnodes));
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 1
 
 figno = 1;
@@ -82,7 +85,8 @@ disp('FIGURE 1: Nominal scenario');
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
@@ -104,7 +108,7 @@ subplot(212)
 savedata;
 errorfigures;
 
-
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 2
 
 figno = 2;
@@ -122,7 +126,8 @@ mpc.bus(PQnodes,BS) = r * mpc.bus(PQnodes,BS);
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
@@ -132,6 +137,7 @@ plotdata;
 savedata;
 errorfigures;
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 3
 
 figno = 3;
@@ -149,7 +155,8 @@ mpc.bus(32,BS) = r * mpc.bus(32,BS);
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
@@ -159,6 +166,7 @@ plotdata;
 savedata;
 errorfigures;
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 4
 
 figno = 4;
@@ -167,6 +175,9 @@ disp('FIGURE 4: Shunt capacitor %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%'
 
 mpc = loadcase('case_ieee123');
 
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
+
 mpc.bus(26,BS) = 0.600;
 mpc.bus(28,BS) = 0.050;
 mpc.bus(29,BS) = 0.050;
@@ -174,18 +185,15 @@ mpc.bus(30,BS) = 0.050;
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
 UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
 
-z0 = 4160^2/1e6;
-
 L4 = L;
-L4(26,26) = L4(26,26) - 1j * 0.600 / z0;
-L4(28,28) = L4(28,28) - 1j * 0.050 / z0;
-L4(29,29) = L4(29,29) - 1j * 0.050 / z0;
-L4(30,30) = L4(30,30) - 1j * 0.050 / z0;
+L4(26,26) = L4(26,26) + 1j * 0.600;
+L4(28,28) = L4(28,28) + 1j * 0.050;
+L4(29,29) = L4(29,29) + 1j * 0.050;
+L4(30,30) = L4(30,30) + 1j * 0.050;
 
 X4 = inv(L4(PQnodes,PQnodes));
 w = -X4 * L4(PQnodes,PCCindex);
@@ -196,6 +204,7 @@ plotdata;
 savedata;
 errorfigures;
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 5
 
 figno = 5;
@@ -209,7 +218,8 @@ mpc.branch(17,TAP) = t;
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
@@ -238,10 +248,10 @@ for br = 1:nbr
 		tt = 1;
 	end
 
-	L5(br_F_BUS, br_T_BUS) = tt * br_Y;
-	L5(br_T_BUS, br_F_BUS) = tt * br_Y;
-	L5(br_F_BUS, br_F_BUS) = L5(br_F_BUS, br_F_BUS) - tt * br_Y;
-	L5(br_T_BUS, br_T_BUS) = L5(br_T_BUS, br_T_BUS) - tt * br_Y;
+	L5(br_F_BUS, br_T_BUS) = - tt * br_Y;
+	L5(br_T_BUS, br_F_BUS) = - tt * br_Y;
+	L5(br_F_BUS, br_F_BUS) = L5(br_F_BUS, br_F_BUS) + tt * br_Y;
+	L5(br_T_BUS, br_T_BUS) = L5(br_T_BUS, br_T_BUS) + tt * br_Y;
 end
 
 X5 = inv(L5(PQnodes,PQnodes));
@@ -255,6 +265,7 @@ plotdata;
 savedata;
 errorfigures;
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 6
 
 figno = 6;
@@ -269,7 +280,8 @@ mpc.gen(1,VG) = tp;
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 UPCC = tp;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
@@ -279,6 +291,7 @@ plotdata;
 savedata;
 errorfigures;
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 7
 
 figno = 7;
@@ -297,7 +310,8 @@ mpc.gencost = 	[mpc.gencost; ...
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 UPCC = 1;
 
 Q = -inv(imag(X(PVbus,PVbus)));
@@ -315,6 +329,7 @@ plotdata;
 savedata;
 errorfigures;
 
+%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% CASE 8
 
 figno = 8;
@@ -332,10 +347,10 @@ for br = 1:nbr
 	br_BR_X = mpc.branch(br,BR_X);
 	br_Y = 1 / (br_BR_R + 1j * br_BR_X);
 
-	L8(br_F_BUS, br_T_BUS) = br_Y;
-	L8(br_T_BUS, br_F_BUS) = br_Y;
-	L8(br_F_BUS, br_F_BUS) = L8(br_F_BUS, br_F_BUS) - br_Y;
-	L8(br_T_BUS, br_T_BUS) = L8(br_T_BUS, br_T_BUS) - br_Y;
+	L8(br_F_BUS, br_T_BUS) = -br_Y;
+	L8(br_T_BUS, br_F_BUS) = -br_Y;
+	L8(br_F_BUS, br_F_BUS) = L8(br_F_BUS, br_F_BUS) + br_Y;
+	L8(br_T_BUS, br_T_BUS) = L8(br_T_BUS, br_T_BUS) + br_Y;
 end
 
 % Build matrix X
@@ -344,7 +359,8 @@ X8 = inv(L8(PQnodes,PQnodes));
 
 results = runpf(mpc, mpoption('VERBOSE', 0, 'OUT_ALL',0));
 
-s = mpc.bus(PQnodes,PD) + mpc.bus(PQnodes,GS) + 1j * (mpc.bus(PQnodes,QD) - mpc.bus(PQnodes,BS));
+full_s = makeSbus(mpc.baseMVA, mpc.bus, mpc.gen);
+s = full_s(PQnodes);
 UPCC = 1;
 
 u_true = results.bus(PQnodes,VM) .* exp(1j * results.bus(PQnodes,VA)/180*pi);
